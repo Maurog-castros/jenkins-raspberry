@@ -137,6 +137,9 @@ celerybeat.pid
 # Environments
 .env
 .envrc
+
+# Docker secrets (never commit)
+secrets/
 .venv
 env/
 venv/
