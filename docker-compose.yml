@@ -1,0 +1,59 @@
+services:
+  jenkins:
+    # Imagen compatible con ARM64 (Raspberry Pi)
+    image: jenkins/jenkins:lts-jdk21
+    container_name: jenkins
+    
+    # Reinicio automático si se detiene
+    restart: unless-stopped
+    
+    # Puertos
+    ports:
+      - "8080:8080"      # Web UI
+      - "50000:50000"    # Jenkins agents
+    
+    # Volúmenes para persistencia de datos
+    volumes:
+      # Directorio principal de Jenkins (donde guarda configuración, jobs, plugins)
+      - jenkins_home:/var/jenkins_home
+      
+      # Socket de Docker (opcional: si necesitas ejecutar Docker desde Jenkins)
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      
+      # Timezone (opcional)
+      - /etc/localtime:/etc/localtime:ro
+    
+    # Variables de entorno
+    environment:
+      # Optimizaciones para Raspberry Pi con RAM limitada
+      JENKINS_JAVA_OPTS: "-Xmx512m -Xms256m"
+      
+      # Configuración inicial
+      JENKINS_ADMIN_ID: admin
+      # JENKINS_ADMIN_PASSWORD: (se proporciona en init)
+      
+      # Timezone
+      TZ: America/Argentina/Buenos_Aires
+    
+    # Límites de memoria aplicados por Docker Compose
+    mem_limit: 512m
+    mem_reservation: 256m
+    
+    # Usuario (no ejecutar como root)
+    user: "1000:1000"
+    
+    # Healthcheck
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/login"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  jenkins_home:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/mauro/jenkins_home
